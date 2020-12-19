@@ -28,7 +28,7 @@ package lextwt
 //           [ colon, (* second *) Number, [ dot, (* nanosec *) Number] ],
 //           [ z | (plus | hyphen, (* tzhour *) Number, [ colon, (* tzmin *) Number ] ) ] ;
 //
-// String  = { any }, !( ? if comment ( "=" | nl ) else ( sp | amp | hash | lt | gt | ls | nl ) ? | term ) ;
+// String  = { any }, !( ? if comment ( "=" | nl ) else ( sp | at | hash | lt | gt | ls | nl ) ? | term ) ;
 // TEXT    = { String | Space | ls } ;
 //
 // Hash    = "#" ;
@@ -37,10 +37,10 @@ package lextwt
 //
 // COMMENT = hash, { Space | String } | Keyval ;
 //
-// amp     = "@" ;
+// at      = "@" ;
 // gt      = ">" ;
 // lt      = "<" ;
-// MENTION = amp, lt, [ String, Space ], String , gt ;
+// MENTION = at, lt, [ String, Space ], String , gt ;
 // TAG     = hash, lt, String, [ Space, String ], gt ;
 //
 // TWT     = DATE, tab, { MENTION | TAG | TEXT }, term;
@@ -176,7 +176,7 @@ const (
 	TokHASH  TokType = "#"
 	TokEQUAL TokType = "="
 
-	TokAMP TokType = "@"
+	TokAT TokType = "@"
 	TokLT  TokType = "<"
 	TokGT  TokType = ">"
 )
@@ -196,7 +196,7 @@ const (
 // 	TokSPACE  // White Space
 // 	TokTAB    // Tab
 //
-// 	TokAMP
+// 	TokAT
 // 	TokCOLON
 // 	TokDOT
 // 	TokHASH
@@ -265,7 +265,7 @@ func (l *lexer) NextTok() bool {
 
 		switch l.rune {
 		case '@':
-			l.loadRune(TokAMP)
+			l.loadRune(TokAT)
 			return true
 		case '#':
 			l.loadRune(TokHASH)
@@ -506,7 +506,7 @@ func (p *parser) ParseElem() Elem {
 	switch p.curTok.Type {
 	case TokHASH:
 		e = p.ParseTag()
-	case TokAMP:
+	case TokAT:
 		e = p.ParseMention()
 	case TokNL, TokEOF:
 		return nil
@@ -745,7 +745,7 @@ func (p *parser) ParseMention() *Mention {
 	var name, domain, target string
 
 	p.lit = append(p.lit, p.curTok.Literal...)
-	if p.curTokenIs(TokAMP) && p.nextTokenIs(TokSTRING) {
+	if p.curTokenIs(TokAT) && p.nextTokenIs(TokSTRING) {
 		p.lit = append(p.lit, p.curTok.Literal...)
 
 		name = string(p.curTok.Literal)
@@ -753,7 +753,7 @@ func (p *parser) ParseMention() *Mention {
 		p.next()
 		p.lit = append(p.lit, p.curTok.Literal...)
 
-		if p.curTokenIs(TokAMP) && p.nextTokenIs(TokSTRING) {
+		if p.curTokenIs(TokAT) && p.nextTokenIs(TokSTRING) {
 			p.lit = append(p.lit, p.curTok.Literal...)
 
 			domain = string(p.curTok.Literal)
@@ -761,7 +761,7 @@ func (p *parser) ParseMention() *Mention {
 			p.next()
 			p.lit = append(p.lit, p.curTok.Literal...)
 		}
-	} else if p.curTokenIs(TokAMP) && p.nextTokenIs(TokLT) {
+	} else if p.curTokenIs(TokAT) && p.nextTokenIs(TokLT) {
 		p.lit = append(p.lit, p.curTok.Literal...)
 
 		if !p.expectNext(TokSTRING) {
@@ -774,7 +774,7 @@ func (p *parser) ParseMention() *Mention {
 		p.next()
 		p.lit = append(p.lit, p.curTok.Literal...)
 
-		if p.curTokenIs(TokAMP) && p.nextTokenIs(TokSTRING) {
+		if p.curTokenIs(TokAT) && p.nextTokenIs(TokSTRING) {
 			p.lit = append(p.lit, p.curTok.Literal...)
 
 			name = target
